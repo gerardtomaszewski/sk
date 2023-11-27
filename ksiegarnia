@@ -1,0 +1,34 @@
+from flask import Flask, json, abort, request
+
+app = Flask(__name__)
+
+with open('books.json') as test_file:
+    data = json.load(test_file)
+
+@app.route("/titles", methods = ['GET'])
+def get_titles():
+    titles = [book['title'] for book in data['books']]
+    return titles
+
+@app.route("/titles/<isbn>", methods = ['GET', 'PUT'])
+
+def parse_isbn(isbn):
+    if request.method == 'GET':
+        for book in data['books']:
+            if book['isbn'] == isbn:
+                return book
+        return abort(404)
+    if request.method == 'PUT':
+        for book in data['books']:
+            if book['isbn'] == isbn:
+                book['author'] = request.args['author']
+                return f'Autor książki {book["title"]} zmieniony na {request.args["author"]}'
+        return abort(404)
+
+@app.route("/descriptions/<expression>", methods = ['GET'])
+def find_books(expression):
+    storage = []
+    for book in data['books']:
+        if expression in book['description']:
+            storage.append(book)
+    return storage
